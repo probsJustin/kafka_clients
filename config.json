@@ -1,9 +1,8 @@
 {
-  "kafka": {
-    "host": "iqgeo-ky.dev.pplcloud.net",
-    "port": "9092",
-    "path": "",
-    "topic": "test-topic",
-    "message": "Hello, Kafka!"
-  }
+    "kafka": {
+        "host": "3.128.168.139",
+        "port": "9092",
+        "topic": "test",
+        "message": "Hello Kafka again"
+    }
 }

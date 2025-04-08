@@ -50,11 +50,10 @@ def create_producer(config: Dict[str, Any]) -> Producer:
     
     producer_config = {
         'bootstrap.servers': server,
+        'security.protocol': 'PLAINTEXT',
         'receive.message.max.bytes': 1000000000,  # 1GB (max allowed)
         'message.max.bytes': 1000000000,  # 1GB (max allowed)
-        'security.protocol': 'SSL',
-        'ssl.endpoint.identification.algorithm': 'none',
-        'api.version.request': 'false',  # Skip API version request
+        'api.version.request': 'true',  # Skip API version request
         'broker.version.fallback': '2.0.0'  # Use a fallback version
     }
     
@@ -85,9 +84,8 @@ def create_consumer(config: Dict[str, Any], group_id: str) -> Consumer:
         'fetch.max.bytes': 1000000000,
         'receive.message.max.bytes': 1000001000,  # 1GB (max allowed)
         'message.max.bytes': 1000000000,  # 1GB (max allowed)
-        'security.protocol': 'SSL',
-        'ssl.endpoint.identification.algorithm': 'none',
-        'api.version.request': 'false',  # Skip API version request
+        'security.protocol': 'PLAINTEXT',
+        'api.version.request': 'true',  # Skip API version request
         'broker.version.fallback': '2.0.0'  # Use a fallback version
     }
     

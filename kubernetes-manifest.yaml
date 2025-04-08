@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-client
+  labels:
+    app: kafka-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-client
+  template:
+    metadata:
+      labels:
+        app: kafka-client
+    spec:
+      containers:
+      - name: kafka-client
+        image: kafka-client:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: KAFKA_BROKER
+          value: "3.128.168.139:9092"
+        - name: KAFKA_TOPIC
+          value: "test"
+        - name: KAFKA_CONSUMER_GROUP
+          value: "kubernetes-consumer-group"
+        - name: KAFKA_MESSAGE
+          value: "Hello from Kubernetes pod"
+        - name: PRODUCER_INTERVAL_SECONDS
+          value: "10"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
