@@ -34,19 +34,64 @@ def delivery_report(err: Optional[Exception], msg: Any) -> None:
 
 def create_producer(config: Dict[str, Any]) -> Producer:
     """Create a Kafka producer from config."""
+    host = config['kafka']['host']
+    port = config['kafka'].get('port', '9092')  # Default to 9092 if not specified
+    path = config['kafka'].get('path', '')  # Path component like /kafka
+    
+    # Format bootstrap.servers based on whether we have a path
+    server = host
+    if port:
+        server = f"{host}:{port}"
+    if path:
+        if path.startswith('/'):
+            server = f"{server}{path}"
+        else:
+            server = f"{server}/{path}"
+    
     producer_config = {
-        'bootstrap.servers': f"{config['kafka']['host']}:{config['kafka']['port']}"
+        'bootstrap.servers': server,
+        'receive.message.max.bytes': 1000000000,  # 1GB (max allowed)
+        'message.max.bytes': 1000000000,  # 1GB (max allowed)
+        'security.protocol': 'SSL',
+        'ssl.endpoint.identification.algorithm': 'none',
+        'api.version.request': 'false',  # Skip API version request
+        'broker.version.fallback': '2.0.0'  # Use a fallback version
     }
+    
+    logger.info(f"Connecting to Kafka server at: {server}")
     return Producer(producer_config)
 
 
 def create_consumer(config: Dict[str, Any], group_id: str) -> Consumer:
     """Create a Kafka consumer from config."""
+    host = config['kafka']['host']
+    port = config['kafka'].get('port', '9092')  # Default to 9092 if not specified
+    path = config['kafka'].get('path', '')  # Path component like /kafka
+    
+    # Format bootstrap.servers based on whether we have a path
+    server = host
+    if port:
+        server = f"{host}:{port}"
+    if path:
+        if path.startswith('/'):
+            server = f"{server}{path}"
+        else:
+            server = f"{server}/{path}"
+    
     consumer_config = {
-        'bootstrap.servers': f"{config['kafka']['host']}:{config['kafka']['port']}",
+        'bootstrap.servers': server,
         'group.id': group_id,
-        'auto.offset.reset': 'earliest'
+        'auto.offset.reset': 'earliest',
+        'fetch.max.bytes': 1000000000,
+        'receive.message.max.bytes': 1000001000,  # 1GB (max allowed)
+        'message.max.bytes': 1000000000,  # 1GB (max allowed)
+        'security.protocol': 'SSL',
+        'ssl.endpoint.identification.algorithm': 'none',
+        'api.version.request': 'false',  # Skip API version request
+        'broker.version.fallback': '2.0.0'  # Use a fallback version
     }
+    
+    logger.info(f"Connecting to Kafka server at: {server}")
     return Consumer(consumer_config)
 
 
@@ -103,9 +148,21 @@ def main() -> None:
                         help='Consumer group ID')
     parser.add_argument('-n', '--num-messages', type=int, default=5,
                        help='Number of messages to consume (default: 5)')
+    parser.add_argument('-p', '--port', 
+                       help='Override Kafka port in config file')
+    parser.add_argument('--path',
+                       help='Override Kafka path component in config file (e.g., /kafka)')
     
     args = parser.parse_args()
     config = load_config(args.config)
+    
+    # Override port if provided via command line
+    if args.port:
+        config['kafka']['port'] = args.port
+        
+    # Override path if provided via command line
+    if args.path:
+        config['kafka']['path'] = args.path
     
     if args.mode in ['produce', 'both']:
         producer = create_producer(config)
